@@ -1,4 +1,5 @@
 .vscode/
+*.csproj
 Build/
 Library/
 Logs/
