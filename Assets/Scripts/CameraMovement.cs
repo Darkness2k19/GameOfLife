@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -52,11 +53,22 @@ public class CameraMovement : MonoBehaviour
 
         m_movementInput.z = Input.mouseScrollDelta.y * m_mouseWheelSensitivity;
         checkMovementBounds();
+
+        Vector3 delta = m_movementResponse * Time.unscaledDeltaTime * (Vector2)(m_movementInput - m_movement);
+        if (m_movementInput.z != 0)
+        {
+            delta.z = m_movementInput.z * 0.1f;
+        }
+        else
+        {
+            delta.z = 1.5f * m_movementResponse * Time.unscaledDeltaTime * (m_movementInput - m_movement).z;
+        }
+        m_movement += delta * 5;
+        m_transform.position += m_movementSpeed * Time.unscaledDeltaTime * m_movement;
     }
 
-    private void setMovementInBounds(float position, Vector2 positionBounds, ref float movementValue)
+    private void setMovementInBounds(float position, Vector2 positionBounds, ref float movementValue, Vector2 bounds)
     {
-        Vector2 bounds = new(-1, 1);
         if (position < positionBounds.x)
         {
             bounds.x = 0;
@@ -70,9 +82,9 @@ public class CameraMovement : MonoBehaviour
 
     private void checkMovementBounds()
     {
-        setMovementInBounds(m_transform.position.x, m_inputBounds.horizontal, ref m_movementInput.x);
-        setMovementInBounds(m_transform.position.y, m_inputBounds.vertical, ref m_movementInput.y);
-        setMovementInBounds(m_transform.position.z, m_inputBounds.zoom, ref m_movementInput.z);
+        setMovementInBounds(m_transform.position.x, m_inputBounds.horizontal, ref m_movementInput.x, new(-1, 1));
+        setMovementInBounds(m_transform.position.y, m_inputBounds.vertical, ref m_movementInput.y, new(-1, 1));
+        setMovementInBounds(m_transform.position.z, m_inputBounds.zoom, ref m_movementInput.z, new(-20, 20));
     }
 
     void Start()
@@ -83,7 +95,5 @@ public class CameraMovement : MonoBehaviour
     void Update()
     {
         processInput();
-        m_movement += (m_movementInput - m_movement) * m_movementResponse;
-        m_transform.position += m_movementSpeed * Time.unscaledDeltaTime * m_movement;
     }
 }

@@ -88,7 +88,7 @@ public class FieldManager : MonoBehaviour
         uint cells = 1;
         while (cells > 0)
         {
-            yield return new WaitForSeconds(0.5f / m_timeSpeed);
+            yield return new WaitForSeconds(0.125f / m_timeSpeed);
             for (int x = 0; x < m_fieldSize.x; ++x)
             {
                 for (int y = 0; y < m_fieldSize.y; ++y)
