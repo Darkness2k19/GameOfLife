@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 public class FieldManager : MonoBehaviour
 {
@@ -16,7 +17,30 @@ public class FieldManager : MonoBehaviour
 
     [SerializeField]
     [Range(0.25f, 10f)]
-    private float m_timeSpeed = 1f;
+    public float timeSpeed = 1f;
+
+    private Coroutine m_cellUpdater = null;
+    public bool m_isStopped = true;
+
+    public bool isStopped
+    {
+        get => m_isStopped;
+        set
+        {
+            if (m_isStopped == value)
+            {
+                return;
+            }
+            m_isStopped = value;
+            if (!value && m_cellUpdater == null)
+            {
+                m_cellUpdater = StartCoroutine(updateCells());
+            }
+        }
+    }
+
+    [SerializeField]
+    private Text m_pauseButtonText;
 
     private void generate()
     {
@@ -75,20 +99,12 @@ public class FieldManager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        m_tilemap = GetComponent<Tilemap>();
-        generate();
-
-        StartCoroutine(updateCells());
-    }
-
     private IEnumerator updateCells()
     {
         uint cells = 1;
-        while (cells > 0)
+        while (cells > 0 && !isStopped)
         {
-            yield return new WaitForSeconds(0.125f / m_timeSpeed);
+            yield return new WaitForSeconds(0.125f / timeSpeed);
             for (int x = 0; x < m_fieldSize.x; ++x)
             {
                 for (int y = 0; y < m_fieldSize.y; ++y)
@@ -107,6 +123,39 @@ public class FieldManager : MonoBehaviour
 
             }
         }
-        Debug.Log("No cells left");
+        m_cellUpdater = null;
+        if (cells == 0)
+        {
+            Debug.Log("No cells left");
+        }
+    }
+
+    public void SwapStoppedState()
+    {
+        isStopped = !isStopped;
+        if (isStopped)
+        {
+            m_pauseButtonText.text = "Continue";
+        }
+        else
+        {
+            m_pauseButtonText.text = "Pause";
+        }
+    }
+
+    void Start()
+    {
+        m_tilemap = GetComponent<Tilemap>();
+        generate();
+
+        isStopped = false;
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SwapStoppedState();
+        }
     }
 }
