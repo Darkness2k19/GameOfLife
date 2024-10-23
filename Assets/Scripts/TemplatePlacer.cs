@@ -6,38 +6,37 @@ using UnityEngine.EventSystems;
 
 public class TemplatePlacer : MonoBehaviour
 {
-    public List<TemplateGhost> ghosts = new List<TemplateGhost>();
+    private List<TemplateGhost> m_ghosts = new List<TemplateGhost>();
 
     [SerializeField]
     private GameObject m_ghostPrefab;
 
-    private int m_holderId = -1;
-
     private EventSystem eventSystem;
 
-    public void Load(TemplateSO template, int holderId)
+    [SerializeField]
+    private Material m_ghostMaterial;
+
+    public void Load(TemplateSO template)
     {
         Clear();
         foreach (var point in template.points)
         {
-            ghosts.Add(Instantiate(m_ghostPrefab,
+            m_ghosts.Add(Instantiate(m_ghostPrefab,
                                    transform.TransformPoint((Vector3)(Vector2)point),
                                    Quaternion.identity,
                                    transform)
                         .GetComponent<TemplateGhost>());
         }
-        m_holderId = holderId;
         gameObject.SetActive(true);
     }
 
     public void Clear()
     {
-        foreach (var ghost in ghosts)
+        foreach (var ghost in m_ghosts)
         {
             Destroy(ghost.gameObject);
         }
-        ghosts.Clear();
-        m_holderId = -1;
+        m_ghosts.Clear();
         gameObject.SetActive(false);
     }
 
@@ -51,15 +50,29 @@ public class TemplatePlacer : MonoBehaviour
         Vector3 mousePoint = UIManager.GetMousePositionWorldSpace();
         transform.localPosition = new((int)mousePoint.x, (int)mousePoint.y);
 
-        if (Input.GetMouseButtonDown((int)MouseButton.Left))
+        if (Input.GetMouseButtonDown((int)MouseButton.Left) && m_ghosts.Count > 0)
         {
             if (eventSystem.IsPointerOverGameObject())
             {
                 return;
             }
-            foreach (var ghost in ghosts)
+
+            bool isInBounds = true;
+            foreach (var ghost in m_ghosts)
             {
-                ghost.Place(m_holderId);
+                if (!ghost.isInBounds)
+                {
+                    isInBounds = false;
+                    break;
+                }
+            }
+
+            if (isInBounds)
+            {
+                foreach (var ghost in m_ghosts)
+                {
+                    ghost.Place(FieldManager.GetInstance().GetActivePlayer());
+                }
             }
         }
 

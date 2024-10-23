@@ -11,10 +11,9 @@ public class TemplateSelectorEnabler : MonoBehaviour
         templateSelector = transform.Find("TemplateSelector").gameObject;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.C) && !UIManager.GetInstance().isInputCaptured)
         {
             templateSelector.SetActive(true);
         }

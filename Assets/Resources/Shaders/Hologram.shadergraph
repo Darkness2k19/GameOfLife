@@ -6584,13 +6584,13 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "r": 0.0,
-        "g": 1.0196079015731812,
-        "b": 2.0,
+        "r": 0.7490196228027344,
+        "g": 0.015464377589523793,
+        "b": 0.0,
         "a": 1.0
     },
     "isMainColor": false,
-    "m_ColorMode": 1
+    "m_ColorMode": 0
 }
 
 {

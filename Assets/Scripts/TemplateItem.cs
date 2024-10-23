@@ -21,6 +21,8 @@ public class TemplateItem : MonoBehaviour
 
         renamingButton.SetActive(false);
         renamingInputField.SetActive(true);
+
+        UIManager.GetInstance().isInputCaptured = true;
     }
 
     public void Rename(string name)
@@ -30,6 +32,8 @@ public class TemplateItem : MonoBehaviour
         renamingInputField.SetActive(false);
 
         templateNameText.text = name;
+
+        UIManager.GetInstance().isInputCaptured = false;
     }
 
     public void Activate()

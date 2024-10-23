@@ -13,7 +13,7 @@ public class TemplateMenuEnabler : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(KeyCode.T) && !UIManager.GetInstance().isInputCaptured)
         {
             templateMenu.SetActive(true);
         }

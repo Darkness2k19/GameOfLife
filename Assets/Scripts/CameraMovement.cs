@@ -36,8 +36,13 @@ public class CameraMovement : MonoBehaviour
     [SerializeField]
     private float maxScrollingSpeed = 1f;
 
-    private void processInput()
+    private void captureInput()
     {
+        if (UIManager.GetInstance().isInputCaptured)
+        {
+            return;
+        }
+
         m_movementInput = Vector3.zero;
         if (Input.GetKey(KeyCode.W))
         {
@@ -57,6 +62,11 @@ public class CameraMovement : MonoBehaviour
         }
 
         m_movementInput.z = Mathf.Clamp(Input.mouseScrollDelta.y, -maxScrollingSpeed, maxScrollingSpeed) * m_mouseWheelSensitivity;
+    }
+
+    private void processInput()
+    {
+        captureInput();
         checkMovementBounds();
 
         Vector3 delta = m_movementResponse * Time.unscaledDeltaTime * (Vector2)(m_movementInput - m_movement);

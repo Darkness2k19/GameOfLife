@@ -41,7 +41,7 @@ public class TemplateMenu : MonoBehaviour
     public void ActivateTemplate(TemplateItem item)
     {
         UIManager.GetInstance().SetUI(m_placer.gameObject);
-        m_placer.Load(item.template, 0);
+        m_placer.Load(item.template);
     }
 
     public void SaveTemplate(TemplateItem item)
@@ -104,6 +104,12 @@ public class TemplateMenu : MonoBehaviour
 
     void OnEnable()
     {
+        if (FieldManager.GetInstance().IsFinished())
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         UIManager.GetInstance().SetUI(gameObject);
         foreach (var template in m_templates)
         {

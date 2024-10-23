@@ -49,6 +49,12 @@ class TemplateSelector : MonoBehaviour
 
   void OnEnable()
   {
+    if (FieldManager.GetInstance().IsFinished())
+    {
+      gameObject.SetActive(false);
+      return;
+    }
+
     UIManager.GetInstance().SetUI(gameObject);
     updateSelection(false);
   }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
@@ -29,8 +30,24 @@ public class FieldManager : MonoBehaviour
     [Range(0.25f, 10f)]
     public float timeSpeed = 1f;
 
+    [SerializeField]
+    private Text playerText;
+    [SerializeField]
+    private Text finishText;
+
+    [SerializeField]
+    private Text player0ScoreText;
+    [SerializeField]
+    private Text player1ScoreText;
+
     private Coroutine m_cellUpdater = null;
     public bool m_isStopped = true;
+
+    private int m_activePlayer = 0;
+
+    private bool m_isEmpty = false;
+
+    private int[] m_score = new int[2];
 
     public bool isStopped
     {
@@ -42,19 +59,57 @@ public class FieldManager : MonoBehaviour
                 return;
             }
             m_isStopped = value;
-            if (!value && m_cellUpdater == null)
-            {
-                m_cellUpdater = StartCoroutine(updateCells());
-            }
+            TryRestart();
         }
     }
 
-    [SerializeField]
-    private Text m_pauseButtonText;
+    private void TryRestart()
+    {
+        if (!m_isStopped && m_cellUpdater == null)
+        {
+            m_cellUpdater = StartCoroutine(updateCells());
+        }
+    }
+
+    public void Finish()
+    {
+        m_activePlayer = -1;
+        m_isStopped = true;
+        playerText.text = "Stop!";
+
+        finishText.gameObject.SetActive(true);
+        if (m_score[0] > m_score[1])
+        {
+            finishText.text = "Player0 won!";
+        }
+        else if (m_score[0] < m_score[1])
+        {
+            finishText.text = "Player1 won!";
+        }
+        else
+        {
+            finishText.text = "Draw!";
+        }
+    }
+
+    public bool IsFinished()
+    {
+        return m_activePlayer == -1;
+    }
 
     public static FieldManager GetInstance()
     {
         return m_instance;
+    }
+
+    public Vector2Int GetBounds()
+    {
+        return m_fieldSize;
+    }
+
+    public int GetActivePlayer()
+    {
+        return m_activePlayer;
     }
 
     public int GetHolderID(Vector2Int position)
@@ -71,36 +126,44 @@ public class FieldManager : MonoBehaviour
     {
         m_field[position.x, position.y].holderId = holderId;
         m_field[position.x, position.y].Update();
+        if (m_isEmpty && !m_field[position.x, position.y].IsEmpty())
+        {
+            TryRestart();
+        }
     }
 
     private void generate()
     {
         m_field = new Cell[m_fieldSize.x, m_fieldSize.y];
 
-        int cells = 0;
         for (int x = 0; x < m_fieldSize.x; ++x)
         {
+            m_borderTilemap.SetTile(new Vector3Int(x, -1), m_tile);
+            m_borderTilemap.SetTile(new Vector3Int(x, m_fieldSize.y), m_tile);
+
             for (int y = 0; y < m_fieldSize.y; ++y)
             {
                 m_tilemap.SetTile(new Vector3Int(x, y), m_tile);
                 m_borderTilemap.SetTile(new Vector3Int(x, y), m_borderTile);
 
                 ref Cell cell = ref m_field[x, y];
-                // var randomValue = Random.Range(0, 2);
-                var randomValue = 1;
-                cell = new Cell(m_tilemap, new Vector2Int(x, y), randomValue > 0 ? -1 : 0, m_colorPalette);
-                if (!cell.IsEmpty())
-                {
-                    ++cells;
-                }
+                cell = new Cell(m_tilemap, new Vector2Int(x, y), -1, m_colorPalette);
             }
         }
-        Debug.LogFormat("Cells on start: {0}", cells);
+        for (int y = 0; y < m_fieldSize.y; ++y)
+        {
+            m_borderTilemap.SetTile(new Vector3Int(-1, y), m_tile);
+            m_borderTilemap.SetTile(new Vector3Int(m_fieldSize.x, y), m_tile);
+        }
     }
 
     private void updateCell(Vector2Int position)
     {
-        uint neighbours = 0;
+        int neighbours = 0;
+        int[] colors = new int[2];
+        colors[0] = 0;
+        colors[1] = 0;
+
         Vector2Int xBounds = new(Mathf.Max(position.x - 1, 0), Mathf.Min(position.x + 1, m_fieldSize.x - 1));
         Vector2Int yBounds = new(Mathf.Max(position.y - 1, 0), Mathf.Min(position.y + 1, m_fieldSize.y - 1));
         for (int x = xBounds.x; x <= xBounds.y; ++x)
@@ -114,6 +177,7 @@ public class FieldManager : MonoBehaviour
                 if (!m_field[x, y].IsEmpty())
                 {
                     ++neighbours;
+                    ++colors[m_field[x, y].holderId];
                 }
             }
         }
@@ -121,7 +185,12 @@ public class FieldManager : MonoBehaviour
         {
             if (neighbours == 3)
             {
-                m_field[position.x, position.y].holderId = 0;
+                int result = colors[0] > colors[1] ? 0 : 1;
+                if (m_field[position.x, position.y].holderId != result)
+                {
+                    m_field[position.x, position.y].holderId = result;
+                    ++m_score[result];
+                }
             }
         }
         else
@@ -130,14 +199,24 @@ public class FieldManager : MonoBehaviour
             {
                 m_field[position.x, position.y].holderId = -1;
             }
+            else if (colors[0] != colors[1])
+            {
+                int result = colors[0] > colors[1] ? 0 : 1;
+                if (m_field[position.x, position.y].holderId != result)
+                {
+                    m_field[position.x, position.y].holderId = result;
+                    ++m_score[result];
+                }
+            }
         }
     }
 
     private IEnumerator updateCells()
     {
         uint cells = 1;
-        while (cells > 0 && !isStopped)
+        while (cells > 0 && !isStopped && !IsFinished())
         {
+            m_isEmpty = false;
             yield return new WaitForSeconds(0.125f / timeSpeed);
             for (int x = 0; x < m_fieldSize.x; ++x)
             {
@@ -146,6 +225,8 @@ public class FieldManager : MonoBehaviour
                     updateCell(new Vector2Int(x, y));
                 }
             }
+            player0ScoreText.text = string.Format("Player0: {0}", m_score[0]);
+            player1ScoreText.text = string.Format("Player1: {0}", m_score[1]);
 
             cells = 0;
             foreach (Cell cell in m_field)
@@ -160,21 +241,18 @@ public class FieldManager : MonoBehaviour
         m_cellUpdater = null;
         if (cells == 0)
         {
-            Debug.Log("No cells left");
+            m_isEmpty = true;
         }
     }
 
-    public void SwapStoppedState()
+    public void SwitchPlayer()
     {
-        isStopped = !isStopped;
-        if (isStopped)
+        if (IsFinished())
         {
-            m_pauseButtonText.text = "Continue";
+            return;
         }
-        else
-        {
-            m_pauseButtonText.text = "Pause";
-        }
+        m_activePlayer = 1 - m_activePlayer;
+        playerText.text = string.Format("Player: {0}", m_activePlayer);
     }
 
     void Awake()
@@ -194,13 +272,5 @@ public class FieldManager : MonoBehaviour
         generate();
 
         isStopped = false;
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SwapStoppedState();
-        }
     }
 }

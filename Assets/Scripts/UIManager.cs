@@ -5,6 +5,7 @@ class UIManager : MonoBehaviour
   private static UIManager m_instance;
 
   private GameObject activeUI;
+  public bool isInputCaptured = false;
 
   public static UIManager GetInstance()
   {

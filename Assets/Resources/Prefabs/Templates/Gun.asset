@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b770a072c3ad9c37a1dfa64942d115b, type: 3}
-  m_Name: Glider Gun
+  m_Name: Gun
   m_EditorClassIdentifier: 
   points:
   - {x: -5, y: 3}
