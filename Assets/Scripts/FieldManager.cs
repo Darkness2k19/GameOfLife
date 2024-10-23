@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
@@ -253,6 +252,19 @@ public class FieldManager : MonoBehaviour
         }
         m_activePlayer = 1 - m_activePlayer;
         playerText.text = string.Format("Player: {0}", m_activePlayer);
+    }
+
+    public void Regenerate()
+    {
+        for (int x = 0; x < m_fieldSize.x; ++x)
+        {
+            for (int y = 0; y < m_fieldSize.y; ++y)
+            {
+                var randomValue = Random.Range(0, 5);
+                m_field[x, y].holderId = randomValue <= 1 ? randomValue : -1;
+            }
+        }
+        TryRestart();
     }
 
     void Awake()

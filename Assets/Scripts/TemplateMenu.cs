@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -46,7 +44,7 @@ public class TemplateMenu : MonoBehaviour
 
     public void SaveTemplate(TemplateItem item)
     {
-        AssetDatabase.CreateAsset(item.template, string.Format("Assets/Resources/{0}/{1}.asset", templatesDirectory, item.template.name));
+        // AssetDatabase.CreateAsset(item.template, string.Format("Assets/Resources/{0}/{1}.asset", templatesDirectory, item.template.name));
     }
 
     public void RenameTemplate(TemplateItem item, string newName)
@@ -77,7 +75,7 @@ public class TemplateMenu : MonoBehaviour
 
     private void clearAsset(TemplateItem item)
     {
-        AssetDatabase.DeleteAsset(string.Format("Assets/Resources/{0}/{1}.asset", templatesDirectory, item.template.name));
+        // AssetDatabase.DeleteAsset(string.Format("Assets/Resources/{0}/{1}.asset", templatesDirectory, item.template.name));
     }
 
     private void updateContainerSize()
