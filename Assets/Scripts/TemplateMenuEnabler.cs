@@ -4,18 +4,18 @@ using UnityEngine;
 
 public class TemplateMenuEnabler : MonoBehaviour
 {
-    [SerializeField]
     private GameObject templateMenu;
+
+    void Start()
+    {
+        templateMenu = transform.Find("TemplateMenu").gameObject;
+    }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.T))
         {
             templateMenu.SetActive(true);
-        }
-        else if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            templateMenu.SetActive(false);
         }
     }
 }

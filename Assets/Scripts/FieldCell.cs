@@ -13,17 +13,25 @@ public class Cell
   private int m_nextHolderId = -1;
 
   private readonly Tilemap m_tilemap = null;
-  public readonly Vector2Int m_location;
+  private readonly Vector2Int m_location;
 
-  public Cell(Tilemap tilemap, Vector2Int location, int holderId)
+  private readonly List<Color> m_colorPalette;
+
+  public Cell(Tilemap tilemap, Vector2Int location, int holderId, List<Color> colorPalette)
   {
     m_tilemap = tilemap;
     m_location = location;
     m_holderId = holderId;
     m_nextHolderId = holderId;
+    m_colorPalette = colorPalette;
 
     m_tilemap.SetTileFlags((Vector3Int)m_location, TileFlags.None);
-    m_tilemap.SetColor((Vector3Int)m_location, IsEmpty() ? Color.green : Color.red);
+    updateColor();
+  }
+
+  private void updateColor()
+  {
+    m_tilemap.SetColor((Vector3Int)m_location, m_colorPalette[m_holderId + 1]);
   }
 
   public bool IsEmpty()
@@ -45,7 +53,7 @@ public class Cell
     if (m_nextHolderId != m_holderId)
     {
       m_holderId = m_nextHolderId;
-      m_tilemap.SetColor((Vector3Int)m_location, IsEmpty() ? Color.green : Color.red);
+      updateColor();
     }
     return !IsEmpty();
   }

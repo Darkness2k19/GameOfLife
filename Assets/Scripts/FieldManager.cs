@@ -6,14 +6,24 @@ using UnityEngine.UI;
 
 public class FieldManager : MonoBehaviour
 {
-    [SerializeField]
-    private TileBase m_tile;
+    private static FieldManager m_instance = null;
 
     [SerializeField]
     private Vector2Int m_fieldSize;
     [SerializeField]
     private Cell[,] m_field;
+
+    [SerializeField]
+    private TileBase m_tile;
     private Tilemap m_tilemap;
+
+    [SerializeField]
+    private TileBase m_borderTile;
+    [SerializeField]
+    private Tilemap m_borderTilemap;
+
+    [SerializeField]
+    private List<Color> m_colorPalette;
 
     [SerializeField]
     [Range(0.25f, 10f)]
@@ -42,6 +52,27 @@ public class FieldManager : MonoBehaviour
     [SerializeField]
     private Text m_pauseButtonText;
 
+    public static FieldManager GetInstance()
+    {
+        return m_instance;
+    }
+
+    public int GetHolderID(Vector2Int position)
+    {
+        return m_field[position.x, position.y].holderId;
+    }
+
+    public bool IsEmpty(Vector2Int position)
+    {
+        return m_field[position.x, position.y].IsEmpty();
+    }
+
+    public void UpdateCell(Vector2Int position, int holderId)
+    {
+        m_field[position.x, position.y].holderId = holderId;
+        m_field[position.x, position.y].Update();
+    }
+
     private void generate()
     {
         m_field = new Cell[m_fieldSize.x, m_fieldSize.y];
@@ -52,9 +83,12 @@ public class FieldManager : MonoBehaviour
             for (int y = 0; y < m_fieldSize.y; ++y)
             {
                 m_tilemap.SetTile(new Vector3Int(x, y), m_tile);
+                m_borderTilemap.SetTile(new Vector3Int(x, y), m_borderTile);
+
                 ref Cell cell = ref m_field[x, y];
-                var randomValue = Random.Range(0, 2);
-                cell = new Cell(m_tilemap, new Vector2Int(x, y), randomValue > 0 ? -1 : 0);
+                // var randomValue = Random.Range(0, 2);
+                var randomValue = 1;
+                cell = new Cell(m_tilemap, new Vector2Int(x, y), randomValue > 0 ? -1 : 0, m_colorPalette);
                 if (!cell.IsEmpty())
                 {
                     ++cells;
@@ -141,6 +175,17 @@ public class FieldManager : MonoBehaviour
         {
             m_pauseButtonText.text = "Pause";
         }
+    }
+
+    void Awake()
+    {
+        if (m_instance != null)
+        {
+            Debug.LogError("Attempt to create second singleton of type FieldManager");
+            return;
+        }
+
+        m_instance = this;
     }
 
     void Start()

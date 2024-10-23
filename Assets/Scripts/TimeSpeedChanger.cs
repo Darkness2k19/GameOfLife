@@ -22,6 +22,6 @@ public class TimeSpeedChanger : MonoBehaviour
             m_fieldManager.timeSpeed = Mathf.Lerp(0.25f, 1, m_scrollbar.value / 0.5f);
         }
         m_fieldManager.timeSpeed = (float)Math.Round(m_fieldManager.timeSpeed, 2);
-        m_timeSpeedText.text = m_fieldManager.timeSpeed.ToString();
+        m_timeSpeedText.text = "x" + m_fieldManager.timeSpeed.ToString();
     }
 }

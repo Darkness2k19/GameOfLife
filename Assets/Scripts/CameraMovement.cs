@@ -10,6 +10,8 @@ struct CameraBounds
     public Vector2 horizontal;
     public Vector2 vertical;
     public Vector2 zoom;
+
+    public float maxOffset;
 };
 
 public class CameraMovement : MonoBehaviour
@@ -31,6 +33,9 @@ public class CameraMovement : MonoBehaviour
     private Vector3 m_movement = Vector3.zero;
     private Vector3 m_movementInput = Vector3.zero;
 
+    [SerializeField]
+    private float maxScrollingSpeed = 1f;
+
     private void processInput()
     {
         m_movementInput = Vector3.zero;
@@ -51,7 +56,7 @@ public class CameraMovement : MonoBehaviour
             m_movementInput.x += 1;
         }
 
-        m_movementInput.z = Input.mouseScrollDelta.y * m_mouseWheelSensitivity;
+        m_movementInput.z = Mathf.Clamp(Input.mouseScrollDelta.y, -maxScrollingSpeed, maxScrollingSpeed) * m_mouseWheelSensitivity;
         checkMovementBounds();
 
         Vector3 delta = m_movementResponse * Time.unscaledDeltaTime * (Vector2)(m_movementInput - m_movement);
@@ -61,19 +66,25 @@ public class CameraMovement : MonoBehaviour
         }
         else
         {
-            delta.z = 1.5f * m_movementResponse * Time.unscaledDeltaTime * (m_movementInput - m_movement).z;
+            delta.z = -1.5f * m_movementResponse * Time.unscaledDeltaTime * m_movement.z;
         }
         m_movement += delta * 5;
-        m_transform.position += m_movementSpeed * Time.unscaledDeltaTime * m_movement;
+
+        Vector3 position = m_transform.position + m_movementSpeed * Time.unscaledDeltaTime * m_movement;
+        m_transform.position = new Vector3(
+            Mathf.Clamp(position.x, m_inputBounds.horizontal.x, m_inputBounds.horizontal.y),
+            Mathf.Clamp(position.y, m_inputBounds.vertical.x, m_inputBounds.vertical.y),
+            Mathf.Clamp(position.z, m_inputBounds.zoom.x, m_inputBounds.zoom.y)
+        );
     }
 
     private void setMovementInBounds(float position, Vector2 positionBounds, ref float movementValue, Vector2 bounds)
     {
-        if (position < positionBounds.x)
+        if (position < positionBounds.x + m_inputBounds.maxOffset)
         {
             bounds.x = 0;
         }
-        if (position > positionBounds.y)
+        if (position > positionBounds.y - m_inputBounds.maxOffset)
         {
             bounds.y = 0;
         }
